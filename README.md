@@ -60,3 +60,4 @@ Cowrie · Google Cloud · Python · scikit-learn · XGBoost · SQLite · Streaml
 
 Raw honeypot logs, server addresses and credentials are **not** published in this repository.
 
+** [View the dashboard prototype](https://claaricedara.github.io/ssh-honeypot-classifier/)**
